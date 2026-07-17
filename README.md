@@ -48,7 +48,7 @@ It lets you tweak, among other things:
   each with separate values for "normal", "near midnight" and "near Halloween"
 - sound volumes
 - biome and dimension allow/deny rules (see the comments generated in the file)
-
+- Add a config option on/off in ModMenu to toggle jumpscares.
 ## Building from source
 
 ```
