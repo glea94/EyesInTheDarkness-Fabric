@@ -1,0 +1,13 @@
+classTweaker	v2	official
+
+# Equivalent of the NeoForge accesstransformer.cfg entry:
+#   public-f net.minecraft.server.level.ServerLevel customSpawners
+# We only need read/write access here (mutability), not extra visibility beyond package,
+# because the actual "public" exposure is done through the accessor mixin
+# (dev.gigaherz.eyes.mixin.ServerLevelCustomSpawnersAccessor). This entry makes sure
+# the field can be both read and reassigned even though it is declared "final" in vanilla.
+accessible field net/minecraft/server/level/ServerLevel customSpawners Ljava/util/List;
+mutable field net/minecraft/server/level/ServerLevel customSpawners Ljava/util/List;
+
+# Enum extension for the custom EYESINTHEDARKNESS_EYES mob category (see MobCategoryMixin).
+extend-enum net/minecraft/world/entity/MobCategory EYESINTHEDARKNESS_EYES

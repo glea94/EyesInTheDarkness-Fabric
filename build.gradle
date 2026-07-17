@@ -1,0 +1,89 @@
+plugins {
+    id 'java-library'
+    id 'eclipse'
+    id 'idea'
+    id 'maven-publish'
+    id 'net.fabricmc.fabric-loom' version '1.17.14'
+}
+
+version = project.mod_version
+group = project.maven_group
+base.archivesName = "${project.archives_base_name}-${project.minecraft_version}"
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+
+repositories {
+    // Adresse corrigée et mise à jour pour le serveur de TerraformersMC
+    maven {
+        url = "https://maven.terraformersmc.com/"
+    }
+}
+
+loom {
+    // Minecraft 26.2 ships unobfuscated (official Mojang names), so Loom does not remap anything.
+    splitEnvironmentSourceSets()
+
+    mods {
+        eyesinthedarkness {
+            sourceSet sourceSets.main
+            sourceSet sourceSets.client
+        }
+    }
+
+    // Class tweaker (formerly "access widener") file, used to expose the private
+    // ServerLevel#customSpawners field and to enum-extend MobCategory.
+    accessWidenerPath = file("src/main/resources/eyesinthedarkness.classtweaker")
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    // Minecraft 26.2 is unobfuscated - no mappings artifact is required.
+
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+    // Fabric API. This is technically optional, but you probably want it anyway.
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    // Mise à jour de la dépendance vers la version officielle 20.0.1 pour Minecraft 26.2
+    clientImplementation "com.terraformersmc:modmenu:20.0.1"
+}
+
+// Remplacement automatique de ${version} compatible avec le cache de configuration (Gradle 10)
+processResources {
+    def modVersion = project.version
+    inputs.property "version", modVersion
+
+    filesMatching("fabric.mod.json") {
+        expand "version": modVersion
+    }
+}
+
+jar {
+    from(files('LICENSE.txt'))
+
+    manifest {
+        attributes([
+                "Specification-Title"     : "eyes",
+                "Specification-Vendor"    : "gigaherz",
+                "Specification-Version"   : "1",
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : project.version,
+                "Implementation-Vendor"   : "gigaherz",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    // Affiche le détail des avertissements de dépréciation (comme dans EyesEntity.java)
+    options.compilerArgs << "-Xlint:deprecation"
+}
+
+// IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable it.
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}
