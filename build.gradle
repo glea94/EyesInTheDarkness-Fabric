@@ -13,14 +13,23 @@ base.archivesName = "${project.archives_base_name}-${project.minecraft_version}"
 java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 repositories {
-    // Adresse corrigée et mise à jour pour le serveur de TerraformersMC
-    maven {
-        url = "https://maven.terraformersmc.com/"
+    // Dépôt officiel sécurisé Modrinth configuré exclusivement pour vos dépendances graphiques
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Modrinth"
+                url = "https://api.modrinth.com/maven"
+            }
+        }
+        filter {
+            // Autorise le téléchargement des artifacts hébergés sur Modrinth
+            includeGroup "maven.modrinth"
+        }
     }
 }
 
 loom {
-    // Minecraft 26.2 ships unobfuscated (official Mojang names), so Loom does not remap anything.
+    // Minecraft 1.26.2 est fourni non obscurci (noms officiels de Mojang), Loom ne remappe rien.
     splitEnvironmentSourceSets()
 
     mods {
@@ -30,25 +39,26 @@ loom {
         }
     }
 
-    // Class tweaker (formerly "access widener") file, used to expose the private
-    // ServerLevel#customSpawners field and to enum-extend MobCategory.
+    // Fichier d'accès aux variables privées (ex: ServerLevel#customSpawners)
     accessWidenerPath = file("src/main/resources/eyesinthedarkness.classtweaker")
 }
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    // Minecraft 26.2 is unobfuscated - no mappings artifact is required.
 
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-    // Fabric API. This is technically optional, but you probably want it anyway.
+    // Charge l'API Fabric globale
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    // Mise à jour de la dépendance vers la version officielle 20.0.1 pour Minecraft 26.2
-    clientImplementation "com.terraformersmc:modmenu:20.0.1"
+    // 1. Dépendance ModMenu officielle (mOgUt4GM) fournie via l'identifiant Modrinth
+    clientImplementation "maven.modrinth:mOgUt4GM:njXb639R"
+
+    // 2. Dépendance Cloth Config officielle (9s6osm5g) fournie via l'identifiant Modrinth
+    clientImplementation "maven.modrinth:9s6osm5g:Nv3xnWXd"
 }
 
-// Remplacement automatique de ${version} compatible avec le cache de configuration (Gradle 10)
+// Remplacement automatique de la version compatible avec le cache de configuration de Gradle
 processResources {
     def modVersion = project.version
     inputs.property "version", modVersion
@@ -76,11 +86,10 @@ jar {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
-    // Affiche le détail des avertissements de dépréciation (comme dans EyesEntity.java)
     options.compilerArgs << "-Xlint:deprecation"
 }
 
-// IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable it.
+// Téléchargement automatique des sources et de la javadoc pour le confort sur votre IDE
 idea {
     module {
         downloadSources = true

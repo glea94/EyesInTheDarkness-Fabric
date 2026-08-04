@@ -264,12 +264,19 @@ public class EyesEntity extends Monster
 
     private void disappear(boolean playDeathSound)
     {
+        // Sécurité : Si le code tourne côté client, on n'applique pas les dégâts serveur
+        if (this.level().isClientSide())
+        {
+            return;
+        }
+
         hurtServer((ServerLevel) this.level(), damageSources().generic(), 1.0F);
         if (playDeathSound)
         {
             this.playSound(getDeathSound(), this.getDisappearVolume(), this.getVoicePitch());
         }
     }
+
 
     @Override
     protected float getSoundVolume()

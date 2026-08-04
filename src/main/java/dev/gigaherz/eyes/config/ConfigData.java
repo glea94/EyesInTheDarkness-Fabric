@@ -117,6 +117,65 @@ public class ConfigData
         }
     }
 
+    /**
+     * AJOUT : Méthode permettant de sauvegarder les valeurs de la mémoire vive
+     * directement dans le fichier physique de configuration .json du disque dur.
+     */
+    public static void save()
+    {
+        Path path = FabricLoader.getInstance().getConfigDir().resolve("eyesinthedarkness.json");
+        Model model = new Model();
+
+        // On injecte les valeurs actuelles des variables dans la structure de données
+        model.general.jumpscare = jumpscare;
+        model.general.jumpscareHurtLevel = jumpscareHurtLevel;
+        model.general.eyesCanAttackWhileLit = eyesCanAttackWhileLit;
+        model.general.speedNoAggro = speedNoAggro;
+        model.general.speedFullAggro = speedFullAggro;
+        model.general.longSpawnCycleWarning = longSpawnCycleWarning;
+
+        model.eyeAggression.enableEscalation = enableEyeAggressionEscalation;
+        model.eyeAggression.localDifficulty = eyeAggressionDependsOnLocalDifficulty;
+        model.eyeAggression.lightLevel = eyeAggressionDependsOnLightLevel;
+
+        model.soundVolumes.idleNoiseVolume = eyeIdleVolume;
+        model.soundVolumes.disappearNoiseVolume = eyeDisappearVolume;
+        model.soundVolumes.jumpscareVolume = eyeJumpscareVolume;
+
+        model.spawning.enableNaturalSpawn = enableNaturalSpawn;
+        model.spawning.maxEyesSpawnDistance = maxEyesSpawnDistance;
+        model.spawning.biomeRules = biomeRules;
+        model.spawning.dimensionRules = dimensionRules;
+
+        model.spawningNormal.spawnCycleInterval = spawnCycleIntervalNormal;
+        model.spawningNormal.maxEyesAroundPlayer = maxEyesAroundPlayerNormal;
+        model.spawningNormal.maxTotalEyesPerDimension = maxTotalEyesPerDimensionNormal;
+
+        model.spawningMidnight.spawnCycleInterval = spawnCycleIntervalMidnight;
+        model.spawningMidnight.maxEyesAroundPlayer = maxEyesAroundPlayerMidnight;
+        model.spawningMidnight.maxTotalEyesPerDimension = maxTotalEyesPerDimensionMidnight;
+
+        model.spawningHalloween.spawnCycleInterval = spawnCycleIntervalHalloween;
+        model.spawningHalloween.maxEyesAroundPlayer = maxEyesAroundPlayerHalloween;
+        model.spawningHalloween.maxTotalEyesPerDimension = maxTotalEyesPerDimensionHalloween;
+
+        model.client.jumpscare = jumpscareClient;
+
+        // Écriture effective dans le fichier eyesinthedarkness.json
+        try
+        {
+            Files.createDirectories(path.getParent());
+            try (Writer writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8))
+            {
+                GSON.toJson(model, writer);
+            }
+        }
+        catch (IOException e)
+        {
+            LOGGER.warn("Could not write config file {} upon saving.", path, e);
+        }
+    }
+
     private static void apply(Model model)
     {
         jumpscare = model.general.jumpscare;
@@ -156,7 +215,6 @@ public class ConfigData
         BiomeRules.parseRules(biomeRules);
         DimensionRules.parseRules(dimensionRules);
     }
-
     private static <T> T orDefault(T value, java.util.function.Supplier<T> defaultSupplier)
     {
         return value != null ? value : defaultSupplier.get();

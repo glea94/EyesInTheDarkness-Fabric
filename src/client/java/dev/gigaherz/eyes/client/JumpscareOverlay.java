@@ -55,7 +55,6 @@ public class JumpscareOverlay implements HudElement
 
     public static void register()
     {
-        // Remplacement par VanillaHudElements.CHAT (Présent de manière stable dans l'API) pour ancrer notre overlay
         HudElementRegistry.attachElementAfter(VanillaHudElements.CHAT, EyesInTheDarkness.location("jumpscare"), INSTANCE);
         ClientTickEvents.START_CLIENT_TICK.register(client -> INSTANCE.clientTick());
     }
@@ -94,7 +93,6 @@ public class JumpscareOverlay implements HudElement
         }
     }
 
-    // Correction 1 : Remplacement obligatoire de @Override render par extractRenderState pour l'interface HudElement
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, DeltaTracker partialTicks)
     {
@@ -112,7 +110,6 @@ public class JumpscareOverlay implements HudElement
             return;
         }
 
-        // Correction 2 : Gestion de la matrice via l'état de l'allocateur au lieu de push/pop manquants
         Matrix3x2f originalPose = new Matrix3x2f(graphics.pose());
 
         float darkening = Mth.clamp(
@@ -129,7 +126,7 @@ public class JumpscareOverlay implements HudElement
             if (time >= ANIMATION_SCARE_START)
             {
                 blinkstate = 1;
-                showCreep = (time - ANIMATION_SCARE_START) > ANIMATION_SCARE1;
+                showCreep = true;
             }
             else
             {
@@ -150,14 +147,21 @@ public class JumpscareOverlay implements HudElement
                 int texW = 2048;
                 int texH = 1024;
 
-                float scale1 = screenHeight / (float) texH;
-                int drawY = 0;
-                int drawH = screenHeight;
-                int drawW = Mth.floor(texW * scale1);
-                int drawX = (screenWidth - drawW) / 2;
-
-                // Correction 3 : Forçage du cast (int) pour drawX et drawY afin de supprimer les erreurs de perte de précision (lossy conversion)
-                graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE_FLASH, (int)drawX, (int)drawY, 0, 0, drawW, drawH, texW, texH, (alpha << 24) | 0xFFFFFF);
+                graphics.blit(
+                        RenderPipelines.GUI_TEXTURED,
+                        TEXTURE_FLASH,
+                        0,
+                        0,
+                        0.0f,
+                        0.0f,
+                        screenWidth,
+                        screenHeight,
+                        texW,
+                        texH,
+                        texW,
+                        texH,
+                        (alpha << 24) | 0xFFFFFF
+                );
             }
         }
 
@@ -190,11 +194,23 @@ public class JumpscareOverlay implements HudElement
             int texW = 32;
             int texH = 32;
 
-            // Correction 4 : drawX et drawY passés en int stricts
-            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE_EYES, drawX, drawY, tx, ty, drawW, drawH, texW, texH, 0xFFFFFFFF);
+            graphics.blit(
+                    RenderPipelines.GUI_TEXTURED,
+                    TEXTURE_EYES,
+                    drawX,
+                    drawY,
+                    (float) tx,
+                    (float) ty,
+                    drawW,
+                    drawH,
+                    tw,
+                    th,
+                    texW,
+                    texH,
+                    0xFFFFFFFF
+            );
         }
 
-        // Restauration de la matrice d'origine
         graphics.pose().set(originalPose);
     }
 }
